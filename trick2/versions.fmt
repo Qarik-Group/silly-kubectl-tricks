@@ -1,0 +1,2 @@
+NAMESPACE            NAME           IMAGE
+metadata.namespace   metadata.name  status.containerStatuses[0].imageID

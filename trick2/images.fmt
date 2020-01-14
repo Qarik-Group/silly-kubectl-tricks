@@ -1,0 +1,2 @@
+NAMESPACE            NAME           IMAGE
+metadata.namespace   metadata.name  spec.containers[0].image
