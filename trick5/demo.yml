@@ -1,0 +1,79 @@
+###
+#
+# Silly Kubectl Trick #5 - Getting At Those Logs
+#
+# This Kubernetes resource definition file is meant to accompany the
+# Silly Kubectl Tricks video and blog series, specifially Trick #5,
+# which is all about getting at logs from running and defunct pods.
+#
+# Blog:  (forthcoming)
+# Video: (forthcoming)
+#
+###
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:      opt
+  namespace: logs
+data:
+  run: |
+    #!/bin/bash
+    echo "[$(date)] starting up..."
+    sleep 15
+    echo "[$(date)] startup complete; initializing."
+    echo "[$(date)] - frobbing the data cache..."
+    echo "[$(date)] - allocating grokbase fooblers..."
+    echo "[$(date)] - reticulating splines..."
+    echo "[$(date)] - reclaiming unused memory..."
+    echo "[$(date)] - checking in on friends and family..."
+    echo "[$(date)] initialization complete; entering main loop."
+    echo "[$(date)] ..."
+    echo "[$(date)] ..."
+    echo "[$(date)] ..."
+    echo "[$(date)] ..."
+    echo "[$(date)] UNMITIGATED DISASTER!"
+    echo "[$(date)] THREAD PANIC detected; no assurances given."
+    echo "[$(date)] IT'S A BAD SCENE, MAN!"
+    echo "[$(date)] <crashed>"
+    exit 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:      failing
+  namespace: logs
+  labels:
+    skt: "5"
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing
+      skt: "5"
+  template:
+    metadata:
+      labels:
+        app: failing
+        skt: "5"
+    spec:
+      containers:
+        - name:  fail
+          image: huntprod/run
+          imagePullPolicy: Always
+
+          volumeMounts:
+            - name: opt
+              mountPath: /opt
+
+      volumes:
+        - name: opt
+          configMap:
+            name: opt
+            defaultMode: 0755
