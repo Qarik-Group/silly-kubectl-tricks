@@ -1,0 +1,182 @@
+###
+#
+# Silly Kubectl Trick #6 - Label it to Enable It
+#
+# This Kubernetes resource definition file is meant to accompany the
+# Silly Kubectl Tricks video and blog series, specifically Trick #6,
+# which is all about getting at pods and things using the `-l` selector,
+# and slicing-n-dicing your k8s objects with aspect-oriented labels.
+#
+# Blog:  (forthcoming)
+# Video: (forthcoming)
+#
+###
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trick6
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: trick6
+  name: redis-cache
+  labels:
+    skt: "6"
+spec:
+  type: ClusterIP
+  selector:
+    service: redis-cache
+  ports:
+    - name: redis
+      port: 2379
+      targetPort: redis
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: trick6
+  name: redis-cache
+  labels:
+    skt: "6"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: redis-cache
+
+  template:
+    metadata:
+      labels:
+        env:     prod
+        role:    frontend
+        app:     redis-cache
+        service: redis-cache
+        skt:     "6"
+
+    spec:
+      containers:
+        - name: redis
+          image: redis
+
+          ports:
+            - name: redis
+              containerPort: 2379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: trick6
+  name: db
+  labels:
+    skt: "6"
+spec:
+  type: ClusterIP
+  selector:
+    service: db
+  ports:
+    - name: db
+      port: 3306
+      targetPort: db
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: trick6
+  name: db
+  labels:
+    skt: "6"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: db
+
+  template:
+    metadata:
+      labels:
+        env:     prod
+        role:    backend
+        app:     db
+        service: db
+        skt:     "6"
+
+    spec:
+      containers:
+        - name: db
+          image: mariadb
+
+          env:
+            - name:  MYSQL_ROOT_PASSWORD
+              value: "sekrit"
+
+          ports:
+            - name: db
+              containerPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: trick6
+  name: admin-ui
+  labels:
+    skt:  "6"
+spec:
+  replicas: 3
+  selector:
+    matchLabels: 
+      app: admin-ui
+  template:
+    metadata:
+      labels:
+        env:  admin
+        role: backend
+        app:  admin-ui
+        skt:  "6"
+
+    spec:
+      containers:
+        - name: web
+          image: nginx
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trick6
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: trick6
+  name: app-server
+  labels:
+    skt: "6"
+
+spec:
+  replicas: 7
+  selector:
+    matchLabels:
+      env: prod
+      app: app-server
+
+  template:
+    metadata:
+      labels:
+        env:  prod
+        role: frontend
+        app:  app-server
+        skt:  "6"
+
+    spec:
+      containers:
+        - name: www
+          image: nginx
+
+        - name: sessions
+          image: redis
