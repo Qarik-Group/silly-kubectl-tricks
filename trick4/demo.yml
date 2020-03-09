@@ -1,0 +1,74 @@
+###
+#
+# Silly Kubectl Trick #4 - Getting At Those Logs
+#
+# This Kubernetes resource definition file is meant to accompany the
+# Silly Kubectl Tricks video and blog series, specifially Trick #4,
+# which is all about getting at logs from running and defunct pods.
+#
+# Blog:  (forthcoming)
+# Video: (forthcoming)
+#
+###
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trick4
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: trick4
+  name: opt
+data:
+  run: |
+    #!/bin/bash
+    trap 'exit 1;' INT TERM QUIT
+    set -e
+    n=1
+    while true; do
+      echo "[$(date)] logging a little: n=$n"
+      n=$(( n + 1 ))
+      sleep 0.1
+    done
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: log-a-little
+  namespace: trick4
+  labels:
+    skt: "4"
+    log: a-little
+spec:
+  volumes:
+    - name: opt
+      configMap:
+        name: opt
+        defaultMode: 0755
+
+  containers:
+    - name:  log
+      image: huntprod/run
+      volumeMounts:
+        - name: opt
+          mountPath: /opt
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: log-a-bunch
+  namespace: trick4
+  labels:
+    skt: "4"
+    log: a-bunch
+spec:
+  containers:
+  - name: log
+    image: filefrog/k8s-hacks:logx
+    command:
+      - /logx
+      - "10240"
+
