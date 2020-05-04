@@ -1,0 +1,70 @@
+###
+#
+# Silly Kubectl Trick #5 - Waiting for Things To Finish Up
+#
+# This Kubernetes resource definition file is meant to accompany the
+# Silly Kubectl Tricks video and blog series, specifially Trick #4,
+# which is all about waiting for pods and deployments to do their
+# thing.
+#
+# Blog:  (forthcoming)
+# Video: (forthcoming)
+#
+###
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trick5
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: trick5
+  name: opt
+data:
+  run: |
+    #!/bin/bash
+    trap 'exit 1;' INT TERM QUIT
+    set -e
+    while true; do
+      echo "[$(date)] doing some stuff, please hold..."
+      sleep 6
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slow
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: wait-for-dep
+      skt: "5"
+  template:
+    metadata:
+      labels:
+        app: wait-for-dep
+        skt: "5"
+    spec:
+      volumes:
+        - name: opt
+          configMap:
+            name: opt
+            defaultMode: 0755
+
+      initContainers:
+        - name: wait-for-it
+          image: alpine
+          command:
+            - /bin/sh
+            - -c
+            - sleep $(( ( RANDOM % 10 )  + 5 ))
+
+      containers:
+        - name:  do-it
+          image: huntprod/run
+          volumeMounts:
+            - name: opt
+              mountPath: /opt
