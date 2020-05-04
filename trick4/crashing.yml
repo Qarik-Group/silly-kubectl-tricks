@@ -49,19 +49,19 @@ metadata:
   name:      crashing
   namespace: trick4
   labels:
-    skt: "5"
+    skt: "4"
 
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: crashing
-      skt: "5"
+      skt: "4"
   template:
     metadata:
       labels:
         app: crashing
-        skt: "5"
+        skt: "4"
     spec:
       containers:
         - name:  fail
