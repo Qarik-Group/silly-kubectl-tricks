@@ -1,9 +1,9 @@
 ###
 #
-# Silly Kubectl Trick #5 - Getting At Those Logs
+# Silly Kubectl Trick #4 - Getting At Those Logs
 #
 # This Kubernetes resource definition file is meant to accompany the
-# Silly Kubectl Tricks video and blog series, specifially Trick #5,
+# Silly Kubectl Tricks video and blog series, specifially Trick #4,
 # which is all about getting at logs from running and defunct pods.
 #
 # Blog:  (forthcoming)
@@ -14,13 +14,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: logs
+  name: trick4
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name:      opt
-  namespace: logs
+  namespace: trick4
 data:
   run: |
     #!/bin/bash
@@ -46,8 +46,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:      failing
-  namespace: logs
+  name:      crashing
+  namespace: trick4
   labels:
     skt: "5"
 
@@ -55,12 +55,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: failing
+      app: crashing
       skt: "5"
   template:
     metadata:
       labels:
-        app: failing
+        app: crashing
         skt: "5"
     spec:
       containers:
